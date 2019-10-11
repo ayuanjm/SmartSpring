@@ -1,0 +1,132 @@
+	JdkDynamicAopProxy的invoke拦截
+
+	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+		MethodInvocation invocation;
+		Object oldProxy = null;
+		boolean setProxyContext = false;
+
+		TargetSource targetSource = this.advised.targetSource;
+		Class<?> targetClass = null;
+		Object target = null;
+
+		try {
+			if (!this.equalsDefined && AopUtils.isEqualsMethod(method)) {
+				// The target does not implement the equals(Object) method itself.
+				return equals(args[0]);
+			}
+			if (!this.hashCodeDefined && AopUtils.isHashCodeMethod(method)) {
+				// The target does not implement the hashCode() method itself.
+				return hashCode();
+			}
+			if (!this.advised.opaque && method.getDeclaringClass().isInterface() &&
+					method.getDeclaringClass().isAssignableFrom(Advised.class)) {
+				// Service invocations on ProxyConfig with the proxy config...
+				// 使用代理配置在ProxyConfig上进行服务调用
+				return AopUtils.invokeJoinpointUsingReflection(this.advised, method, args);
+			}
+
+			Object retVal;
+            // 如果 expose-proxy 属性为 true，则暴露代理对象
+			if (this.advised.exposeProxy) {
+				// Make invocation available if necessary.
+				// 向 AopContext 中设置代理对象
+				oldProxy = AopContext.setCurrentProxy(proxy);
+				setProxyContext = true;
+			}
+
+			// May be null. Get as late as possible to minimize the time we "own" the target,
+			// in case it comes from a pool.
+			// 得到目标对象
+			target = targetSource.getTarget();
+			if (target != null) {
+				targetClass = target.getClass();
+			}
+
+			// Get the interception chain for this method.
+			// 获取此方法的拦截链
+			List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
+
+			// Check whether we have any advice. If we don't, we can fallback on direct
+			// reflective invocation of the target, and avoid creating a MethodInvocation.
+			// 如果没有拦截，直接调用目标方法
+			if (chain.isEmpty()) {
+				// We can skip creating a MethodInvocation: just invoke the target directly
+				// Note that the final invoker must be an InvokerInterceptor so we know it does
+				// nothing but a reflective operation on the target, and no hot swapping or fancy proxying.
+				retVal = AopUtils.invokeJoinpointUsingReflection(target, method, args);
+			}
+			else {
+			    // 如果有拦截器链的设定，那么需要调用拦截器之后才调用目标对象方法
+                // 通过构造一个ReflectiveMethodInovation来实现
+				// We need to create a method invocation...
+				// 创建一个方法调用器，并将拦截器链传入其中
+				invocation = new ReflectiveMethodInvocation(proxy, target, method, args, targetClass, chain);
+				// 通过拦截器链进入连接点， 执行拦截器链
+				// Proceed to the joinpoint through the interceptor chain.
+				retVal = invocation.proceed();
+			}
+
+            // 获取方法返回值类型
+			// Massage return value if necessary.
+			Class<?> returnType = method.getReturnType();
+			if (retVal != null && retVal == target && returnType.isInstance(proxy) &&
+					!RawTargetAccess.class.isAssignableFrom(method.getDeclaringClass())) {
+				// Special case: it returned "this" and the return type of the method
+				// is type-compatible. Note that we can't help if the target sets
+				// a reference to itself in another returned object.
+				// 如果方法返回值为 this，即 return this; 则将代理对象 proxy 赋值给 retVal
+				retVal = proxy;
+			}
+			// 如果返回值类型为基础类型，比如 int，long 等，当返回值为 null，抛出异常
+			else if (retVal == null && returnType != Void.TYPE && returnType.isPrimitive()) {
+				throw new AopInvocationException(
+						"Null return value from advice does not match primitive return type for: " + method);
+			}
+			return retVal;
+		}
+		finally {
+			if (target != null && !targetSource.isStatic()) {
+				// Must have come from TargetSource.
+				targetSource.releaseTarget(target);
+			}
+			if (setProxyContext) {
+				// Restore old proxy.
+				AopContext.setCurrentProxy(oldProxy);
+			}
+		}
+	}
+
+
+    // 执行拦截器链递归调用
+	public Object proceed() throws Throwable {
+	    //  从索引为-1的拦截器开始调用，并按序递增
+        //  如果拦截器链中的拦截器迭代调用完毕，这里开始调用target函数，通过反射
+		//	We start with an index of -1 and increment early.
+		//  第一次进来 currentInterceptorIndex = -1，拦截器链：interceptorsAndDynamicMethodMatchers
+		if (this.currentInterceptorIndex == this.interceptorsAndDynamicMethodMatchers.size() - 1) {
+			//  拦截器链中的拦截器迭代调用完毕，通过反射调用目标方法
+			return invokeJoinpoint();
+		}
+        //  ++currentInterceptorIndex 按序递增
+		Object interceptorOrInterceptionAdvice =
+				this.interceptorsAndDynamicMethodMatchers.get(++this.currentInterceptorIndex);
+		if (interceptorOrInterceptionAdvice instanceof InterceptorAndDynamicMethodMatcher) {
+			// Evaluate dynamic method matcher here: static part will already have
+			// been evaluated and found to match.
+			InterceptorAndDynamicMethodMatcher dm =
+					(InterceptorAndDynamicMethodMatcher) interceptorOrInterceptionAdvice;
+			if (dm.methodMatcher.matches(this.method, this.targetClass, this.arguments)) {
+				return dm.interceptor.invoke(this);
+			}
+			else {
+				// Dynamic matching failed.
+				// Skip this interceptor and invoke the next in the chain.
+				return proceed();
+			}
+		}
+		else {
+			// It's an interceptor, so we just invoke it: The pointcut will have
+			// been evaluated statically before this object was constructed.
+			return ((MethodInterceptor) interceptorOrInterceptionAdvice).invoke(this);
+		}
+	}

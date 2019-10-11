@@ -1,0 +1,42 @@
+POST http://10.253.125.173:8082/v1/accountBalance/getMonthAsset/shadow
+Accept: */*
+content-type: application/json
+
+{accountCode=null, bankAccountType=null, accountNo=null, accountType=null, protocolNo=null, repayDate=2034-06, planId=null, userId=11468816046212096, status=null}
+
+<> 2019-05-20T055603.200.json
+
+###
+
+POST http://10.253.125.173:8082/v1/accountBalance/getMonthAsset/shadow?map={accountCode=null, bankAccountType=null, accountNo=null, accountType=null, protocolNo=null, repayDate=2034-06, planId=null, userId=11468816046212096, status=null}
+Accept: */*
+content-type: application/json
+
+<> 2019-05-20T053902.200.json
+
+###
+
+POST http://10.253.125.173:8082/v1/accountBalance/getMonthAsset/shadow?={accountCode=null, bankAccountType=null, accountNo=null, accountType=null, protocolNo=null, repayDate=2034-06, planId=null, userId=11468816046212096, status=null}
+Accept: */*
+content-type: application/json
+
+<> 2019-05-20T034421.200.json
+
+###
+
+POST http://10.253.125.173:8082/v1/accountBalance/getMonthAsset/shadow?paramMap={accountCode=null, bankAccountType=null, accountNo=null, accountType=null, protocolNo=null, repayDate=2034-06, planId=null, userId=11468816046212096, status=null}
+Accept: */*
+content-type: application/json
+
+<> 2019-05-20T034022.200.json
+
+###
+
+POST http://10.253.125.173:8082/v1/accountBalance/getMonthAsset/shadow?={accountCode=null, bankAccountType=null, accountNo=null, accountType=null, protocolNo=null, repayDate=2034-06, planId=null, userId=11468816046212096, status=null}
+Accept: */*
+content-type: application/json
+
+<> 2019-05-20T033920.200.json
+
+###
+

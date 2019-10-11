@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-3.2.xsd
+		http://www.springframework.org/schema/aop
+		http://www.springframework.org/schema/aop/spring-aop-3.2.xsd">
+    <context:annotation-config/>
+
+    <context:component-scan base-package="org.smart4j.framework">
+    </context:component-scan>
+
+
+    <bean id="helloAdvisor" class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+        <property name="advice" ref="helloAroundAdvice"/>
+        <property name="pattern" value="proxy.HelloImpl.good.*"/>
+    </bean>
+
+    <bean id="helloProxy" class="org.springframework.aop.framework.ProxyFactoryBean">
+        <!--需要代理的接口(个人感觉只有引入增强时才需要写这个属性，指定引入增强的接口)-->
+<!--        <property name="interfaces" value="proxy.Apology"/>-->
+        <!--接口实现类（目标）-->
+        <property name="target" ref="helloImpl"/>
+        <!--拦截器名称（也就是增强类名称 Spring Bean id）-->
+        <property name="interceptorNames">
+            <list>
+<!--                <value>helloIntroAdvice</value>-->
+<!--                <value>helloAroundAdvice</value>-->
+<!--                <value>helloThrowAdvice</value>-->
+                <value>helloAdvisor</value>
+            </list>
+        </property>
+<!--        <property name="proxyTargetClass" value="true"/>-->
+        <!--对代理生产策略进行优化，有接口代理接口，没有接口代理类-->
+        <property name="optimize" value="true"/>
+    </bean>
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator">
+         <property name="optimize" value="true"/>
+    </bean>
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
+</beans>

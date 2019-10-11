@@ -1,0 +1,69 @@
+/**
+ * 事件定义
+ */
+public class EventDemo extends ApplicationEvent {
+    private String message;
+
+    public EventDemo(Object source, String message) {
+        super(source);
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+}
+/**
+ * 事件监听
+ */
+@EnableAsync
+@Component
+public class EventDemoListern implements ApplicationListener<EventDemo> {
+    @Async
+    @Override
+    public void onApplicationEvent(EventDemo eventDemo) {
+        try {
+            System.out.println(Thread.currentThread().getName() + ":监听到事件处理开始:" + eventDemo.getMessage());
+            //Thread.sleep(5000);
+            System.out.println(Thread.currentThread().getName() + ":监听到事件处理结束:" + eventDemo.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+//    @EventListener
+//    void show(EventDemo demo) {
+//        System.out.println("EventListener:" + demo);
+//    }
+
+}
+/**
+ * 事件发布
+ */
+@Component
+public class EventDemoPublish {
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
+
+    public void publish(String message) {
+        EventDemo eventDemo = new EventDemo(this, message);
+        System.out.println(Thread.currentThread().getName()+":publishEvent事件开始");
+        applicationEventPublisher.publishEvent(eventDemo);
+        System.out.println(Thread.currentThread().getName()+":publishEvent事件结束");
+    }
+}
+@Component
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = "classpath*:/applicationContext.xml")
+public class TestEvent {
+//    @Autowired
+//    private EventDemoPublish eventDemoPublish;
+
+    @Test
+    public void test(){
+        ApplicationContext context = new ClassPathXmlApplicationContext("properties/applicationContext.xml");
+        EventDemoPublish eventDemoPublish = (EventDemoPublish) context.getBean("eventDemoPublish");
+        eventDemoPublish.publish("yuanjm");
+    }
+
+}
