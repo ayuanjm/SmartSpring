@@ -3,11 +3,14 @@ package com.vector;
 
 import lombok.Data;
 
-import java.util.Iterator;
+import java.util.*;
 import java.util.LinkedList;
-import java.util.List;
 
 /**
+ * 优点：ArrayList 是实现了基于动态数组的数据结构，因为地址连续，一旦数据存储好了，
+ * 查询操作效率会比较高（在内存里是连着放的）。
+ * 缺点：因为地址连续，ArrayList 要移动数据，所以插入和删除操作效率比较低。
+ *
  * @author yuan
  * 数据结构向量实现
  */
@@ -83,14 +86,14 @@ public abstract class ArrayList<E> implements List<E> {
             //参数不为空从前到后依次比较
             for (int i = 0; i < this.size; i++) {
                 //判断当前元素是否等于object
-                if (object.equals(elements[size])) {
+                if (object.equals(elements[i])) {
                     return i;
                 }
             }
         } else {
             for (int i = 0; i < this.size; i++) {
                 //判断当前元素是否等于null
-                if (elements[size] == null) {
+                if (elements[i] == null) {
                     return i;
                 }
             }
@@ -199,14 +202,55 @@ public abstract class ArrayList<E> implements List<E> {
         rangeCheck(index);
         //记录删除元素
         E deleteValue = (E) this.elements[index];
+        fastRemove(index);
+        //返回删除下标元素
+        return deleteValue;
+    }
+
+    /**
+     * 删除指定下标的元素
+     * @param index
+     */
+    private void fastRemove(int index) {
         //将删除下标位置之后的数据整体前移一位
         System.arraycopy(elements, index + 1, elements, index, size - index - 1);
         //由于数据整体前移了一位，释放列表末尾的失效引用，增加GC效率
         this.elements[this.size - 1] = null;
         //实际大小减1
         this.size--;
-        //返回删除下标元素
-        return deleteValue;
+    }
+
+    /**
+     * 删除元素,只会删除从前往后遍历的第一个相等的元素
+     *
+     * @param object
+     * @return
+     */
+    @Override
+    public boolean remove(Object object) {
+        //判断当前参数是否为null
+        if (object != null) {
+            //参数不为空从前到后依次比较
+            for (int i = 0; i < this.size; i++) {
+                //判断当前元素是否等于object
+                if (object.equals(elements[i])) {
+                    //将删除下标位置之后的数据整体前移一位
+                    fastRemove(i);
+                    return true;
+                }
+            }
+        } else {
+            for (int i = 0; i < this.size; i++) {
+                //判断当前元素是否等于null
+                if (elements[i] == null) {
+                    //将删除下标位置之后的数据整体前移一位
+                    fastRemove(i);
+                    return true;
+                }
+            }
+        }
+        //遍历列表未找到相等的元素,未进行删除 返回false
+        return false;
     }
 
     /**
@@ -300,8 +344,9 @@ public abstract class ArrayList<E> implements List<E> {
 
     /**
      * 向量 迭代器内部类
+     * 循环时必须先调用next方法才能调用一次remove方法
      */
-    private class Itr implements Iterator<E> {
+    private class ListItr implements Iterator<E> {
         /**
          * 迭代器下一个元素 指针下标
          */
@@ -328,6 +373,11 @@ public abstract class ArrayList<E> implements List<E> {
             return (E) ArrayList.this.elements[this.currentIndex];
         }
 
+        /**
+         * 在ArrayList中有个成员变量modCount，继承于AbstractList。
+         * 这个成员变量记录着集合的修改次数，也就每次add或者remove它的值都会加1。
+         * 会比较modCount和expectedModCount
+         */
         @Override
         public void remove() {
             if (this.currentIndex == -1) {
@@ -340,17 +390,6 @@ public abstract class ArrayList<E> implements List<E> {
 
             //为了防止用户在一次迭代(next调用)中多次使用remove方法，将currentIndex设置为-1
             this.currentIndex = -1;
-        }
-    }
-
-    public static void main(String[] args) {
-        List list = new LinkedList();
-        list.add(2);
-        list.add(3);
-        list.add(1);
-        Iterator iterator = list.iterator();
-        if (iterator.hasNext()) {
-            iterator.remove();
         }
     }
 
