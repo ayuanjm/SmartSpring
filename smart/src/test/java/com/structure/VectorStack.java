@@ -1,4 +1,4 @@
-package com.vector;
+package com.structure;
 
 import java.util.ArrayList;
 import java.util.EmptyStackException;
@@ -81,7 +81,6 @@ public class VectorStack<E> implements Stack<E> {
     }
 
     public static void main(String[] args) {
-        java.util.Stack stack = new java.util.Stack();
-        stack.peek();
+        System.out.println(5%2);
     }
 }

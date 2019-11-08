@@ -2,6 +2,7 @@ package com.algorithm;
 
 /**
  * 链式栈，单链表实现
+ * 先进后出
  */
 public class LinkStack<T> {
     //栈顶节点

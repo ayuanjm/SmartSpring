@@ -1,10 +1,9 @@
-package com.vector;
+package com.structure;
 
 
 import lombok.Data;
 
 import java.util.*;
-import java.util.LinkedList;
 
 /**
  * 优点：ArrayList 是实现了基于动态数组的数据结构，因为地址连续，一旦数据存储好了，
