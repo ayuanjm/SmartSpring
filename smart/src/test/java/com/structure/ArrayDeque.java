@@ -74,9 +74,16 @@ public class ArrayDeque<E> implements Deque<E> {
         //内部数组 扩容两倍
         int elementsLength = elements.length;
         Object[] newElements = new Object[elementsLength * EXPAND_BASE];
-        //将队列头部到数组末尾的值，拷贝到新数组从0开始的位置
+        //将"head -> 数组尾部"的元素 复制在新数组的前面
         System.arraycopy(elements, head, newElements, 0, elements.length - head);
+        //将"0 -> head"的元素 复制在新数组的后面
+        System.arraycopy(elements, 0, newElements, elements.length - head, tail);
+        //初始化head,tail下标(head始终指向头元素，tail指向尾元素的下一个位置)
+        this.head = 0;
+        this.tail = this.elements.length;
 
+        //内部数组指向 新扩容的数组
+        this.elements = newElements;
     }
 
     public static void main(String[] args) {
@@ -107,48 +114,77 @@ public class ArrayDeque<E> implements Deque<E> {
         this.elements[this.head] = e;
         //队列为空时 head == tail,当插入元素后如果head == tail 说明内部数组容量已满，需要扩容。
         if (this.head == this.tail) {
-
+            //内部数组扩容
+            expand();
         }
     }
 
     @Override
     public void addTail(E e) {
-
+        //存放新插入的元素，原来的tail位置没有元素，指向的是尾部的下一个位置
+        this.elements[this.tail] = e;
+        //由于是逆时针数组队列，尾部插入元素，tail下标右移一位
+        this.tail = getMod(this.tail + 1);
+        //队列为空时 head == tail,当插入元素后如果head == tail 说明内部数组容量已满，需要扩容。
+        if (this.head == this.tail) {
+            //内部数组扩容
+            expand();
+        }
     }
 
     @Override
     public E removeHead() {
-        return null;
+        //暂存需要被删除的数据
+        E removeValue = (E) this.elements[this.head];
+        //将当前头部元素引用释放，引用传递
+        this.elements[this.head] = null;
+        //由于是逆时针数组队列，头部插入元素，head下标右移一位
+        this.head = getMod(this.head + 1);
+        return removeValue;
     }
 
     @Override
     public E removeTail() {
-        return null;
+        //由于是逆时针数组队列，尾部删除元素，tail下标左移一位
+        this.tail = getMod(this.tail - 1);
+        //暂存需要被删除的数据
+        E removeValue = (E) this.elements[this.tail];
+        //将当前头部元素引用释放，引用传递
+        this.elements[this.tail] = null;
+        return removeValue;
     }
 
     @Override
     public E peekHead() {
-        return null;
+        return (E) this.elements[this.head];
     }
 
     @Override
     public E peekTail() {
-        return null;
+        //获得尾部元素下标(左移一位)
+        int lastIndex = getMod(this.tail - 1);
+        return (E)this.elements[lastIndex];
     }
 
     @Override
     public int size() {
-        return 0;
+        //当tail==head时只会为空，不会是队满，因为每次进行增加元素都会判断队满，是否扩容。
+        return getMod(this.tail - this.head);
     }
 
     @Override
     public boolean isEmpty() {
-        return false;
+        //当且仅当 头尾下标相等时 队列为空
+        return (head == tail);
     }
 
     @Override
     public void clear() {
-
+        this.head = 0;
+        this.tail = 0;
+        for (int i = 0; i < this.elements.length; i++) {
+            this.elements[i] = null;
+        }
     }
 
     @Override
