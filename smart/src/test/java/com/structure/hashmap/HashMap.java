@@ -1,4 +1,4 @@
-package com.structure;
+package com.structure.hashmap;
 
 import org.springframework.util.CollectionUtils;
 
@@ -308,6 +308,8 @@ public class HashMap<K, V> implements Map<K, V> {
 
     /**
      * 单个插槽内的数据进行rehash
+     * 当hash冲突比较频繁时，查询效率急剧降低。jdk在1.8版本的哈希表实现(java.util.HashMap)中，对这一场景进行了优化。
+     * 当内部桶链表的节点个数超过一定数量(默认为8)时，会将插槽中的桶链表转换成一个红黑树(查询效率为O(logN))。
      *
      * @param index       内部数组下标
      * @param newElements 内部数组
@@ -446,8 +448,60 @@ public class HashMap<K, V> implements Map<K, V> {
     }
 
     @Override
-    public Iterator<EntryNode<K, V>> iterator() {
+    public Iterator<Map.EntryNode<K, V>> iterator() {
         return null;
+    }
+
+    /**
+     * 键值对节点 内部类
+     */
+    class EntryNode<K, V> implements Map.EntryNode<K, V> {
+        final K key;
+        V value;
+        EntryNode<K, V> next;
+
+        EntryNode(K key, V value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        boolean keyIsEquals(K key) {
+            if (this.key == key) {
+                return true;
+            }
+
+            if (key == null) {
+                //:::如果走到这步，this.key不等于null，不匹配
+                return false;
+            } else {
+                return key.equals(this.key);
+            }
+        }
+
+        EntryNode<K, V> getNext() {
+            return next;
+        }
+
+        void setNext(EntryNode<K, V> next) {
+            this.next = next;
+        }
+
+        public K getKey() {
+            return key;
+        }
+
+        public V getValue() {
+            return value;
+        }
+
+        public void setValue(V value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return key + "=" + value;
+        }
     }
 
     public static void main(String[] args) {

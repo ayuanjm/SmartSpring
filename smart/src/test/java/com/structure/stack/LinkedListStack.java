@@ -1,6 +1,4 @@
-package com.structure;
-
-import lombok.extern.slf4j.Slf4j;
+package com.structure.stack;
 
 import java.util.EmptyStackException;
 import java.util.Iterator;

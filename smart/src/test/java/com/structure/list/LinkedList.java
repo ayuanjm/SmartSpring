@@ -1,4 +1,4 @@
-package com.structure;
+package com.structure.list;
 
 import java.util.List;
 

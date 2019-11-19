@@ -1,4 +1,4 @@
-package com.structure;
+package com.structure.stack;
 
 import java.util.Iterator;
 
