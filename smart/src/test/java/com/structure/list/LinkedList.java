@@ -1,6 +1,7 @@
 package com.structure.list;
 
-import java.util.List;
+
+import java.util.Iterator;
 
 /**
  * 优点：LinkedList 基于链表的数据结构，地址是任意的，所以在开辟内存空间的时候不需要等一个连续的地址。
@@ -15,7 +16,7 @@ import java.util.List;
  *
  * @author yuan
  */
-public abstract class LinkedList<E> implements List<E> {
+public class LinkedList<E> implements List<E> {
     /**
      * 链表 头部哨兵节点
      */
@@ -44,27 +45,27 @@ public abstract class LinkedList<E> implements List<E> {
     /**
      * 链表内部节点类
      */
-    private static class Node<T> {
+    private static class Node<E> {
         /**
          * 左边关联的节点引用
          */
-        Node<T> left;
+        Node<E> left;
 
         /**
          * 右边关联的节点引用
          */
-        Node<T> right;
+        Node<E> right;
 
         /**
          * 节点存储的数据
          */
-        T data;
+        E data;
 
         //===================================内部节点 构造函数==================================
         private Node() {
         }
 
-        private Node(T data) {
+        private Node(E data) {
             this.data = data;
         }
 
@@ -73,7 +74,7 @@ public abstract class LinkedList<E> implements List<E> {
          *
          * @param node 需要插入的节点
          */
-        private void linkAsLeft(Node<T> node) {
+        private void linkAsLeft(Node<E> node) {
             //:::先设置新增节点的 左右节点
             node.left = this.left;
             node.right = this;
@@ -88,7 +89,7 @@ public abstract class LinkedList<E> implements List<E> {
          *
          * @param node 需要插入的节点
          */
-        private void linkAsRight(Node<T> node) {
+        private void linkAsRight(Node<E> node) {
             //:::先设置新增节点的 左右节点
             node.left = this;
             node.right = this.right;
@@ -345,16 +346,38 @@ public abstract class LinkedList<E> implements List<E> {
         return node(index).data;
     }
 
-    public static void main(String[] args) {
-        List list = new java.util.LinkedList<>();
-        list.add("a");
-        list.add("b");
-        list.add("c");
-        list.add("a");
-        list.remove("a");
-        for (Object o : list) {
-            System.out.println(o);
+    @Override
+    public void clear() {
+        /**
+         * <p>
+         * 首尾节点互相指向，这样也可以但是不利于GC
+         * this.first.right = this.last;
+         * this.last.left = this.first;
+         * </p>
+         * 清除节点之间的所有链接是“不必要的”，但如果丢弃的节点驻留在内存
+         * 即使有一个可访问的迭代器，也有一个以上的生成可以释放内存
+         */
+        for (Node<E> node = this.first; node.right != this.last; ) {
+            Node<E> next = node.right;
+            node.left = null;
+            node.right = null;
+            node.data = null;
+            node = next;
         }
-
+        this.size = 0;
     }
+
+    public static void main(String[] args) {
+        LinkedList linkedList = new LinkedList();
+        linkedList.add(1);
+        linkedList.add(2);
+        linkedList.add(3);
+//        linkedList.clear();
+        linkedList.get(3);
+    }
+    @Override
+    public Iterator<E> iterator() {
+        return null;
+    }
+
 }

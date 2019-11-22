@@ -4,7 +4,6 @@ package com.structure.list;
 import lombok.Data;
 
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * 优点：ArrayList 是实现了基于动态数组的数据结构，因为地址连续，一旦数据存储好了，
@@ -15,7 +14,7 @@ import java.util.List;
  * 数据结构向量实现
  */
 @Data
-public abstract class ArrayList<E> implements List<E> {
+public class ArrayList<E> implements List<E> {
 
     /**
      * 内部封装的数组
@@ -209,6 +208,7 @@ public abstract class ArrayList<E> implements List<E> {
 
     /**
      * 删除指定下标的元素
+     *
      * @param index
      */
     private void fastRemove(int index) {
@@ -272,6 +272,7 @@ public abstract class ArrayList<E> implements List<E> {
         return oldValue;
     }
 
+
     /**
      * 得到指定下标元素
      *
@@ -294,6 +295,11 @@ public abstract class ArrayList<E> implements List<E> {
             this.elements[i] = null;
         }
         this.size = 0;
+    }
+
+    @Override
+    public Iterator<E> iterator() {
+        return this.new ListItr();
     }
 
     /**
@@ -352,9 +358,9 @@ public abstract class ArrayList<E> implements List<E> {
          */
         private int nextIndex = 0;
         /**
-         * 迭代器当前元素 指针下标
+         * index of last element returned; -1 if no such
          */
-        private int currentIndex = -1;
+        private int lastRet = -1;
 
         @Override
         public boolean hasNext() {
@@ -365,12 +371,12 @@ public abstract class ArrayList<E> implements List<E> {
         @Override
         public E next() {
             //当前元素指针下标 = 下一个元素指针下标
-            this.currentIndex = nextIndex;
+            this.lastRet = nextIndex;
             //下一个元素指针下标自增,指向下一元素
             this.nextIndex++;
 
             //返回当前元素
-            return (E) ArrayList.this.elements[this.currentIndex];
+            return (E) ArrayList.this.elements[this.lastRet];
         }
 
         /**
@@ -380,16 +386,16 @@ public abstract class ArrayList<E> implements List<E> {
          */
         @Override
         public void remove() {
-            if (this.currentIndex == -1) {
+            if (this.lastRet < 0) {
                 throw new RuntimeException("迭代器状态异常: 可能在一次迭代中进行了多次remove操作");
             }
 
             //删除当前元素
-            ArrayList.this.remove(this.currentIndex);
-            //由于删除了当前下标元素，数据段整体向前平移一位，因此nextIndex不用自增
-
+            ArrayList.this.remove(this.lastRet);
+            //由于删除了当前下标元素，数据段整体向前平移一位，因此nextIndex不用自增,在next方法时自增了，现在需要回到自增前的值
+            nextIndex = lastRet;
             //为了防止用户在一次迭代(next调用)中多次使用remove方法，将currentIndex设置为-1
-            this.currentIndex = -1;
+            this.lastRet = -1;
         }
     }
 
