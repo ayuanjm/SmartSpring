@@ -367,17 +367,78 @@ public class LinkedList<E> implements List<E> {
         this.size = 0;
     }
 
-    public static void main(String[] args) {
-        LinkedList linkedList = new LinkedList();
-        linkedList.add(1);
-        linkedList.add(2);
-        linkedList.add(3);
-//        linkedList.clear();
-        linkedList.get(3);
-    }
     @Override
-    public Iterator<E> iterator() {
-        return null;
+    public String toString() {
+        Iterator<E> iterator = this.iterator();
+        if (!iterator.hasNext()) {
+            return "[]";
+        }
+        StringBuffer sb = new StringBuffer("[");
+        while (iterator.hasNext()) {
+            //获得迭代的当前元素,每次调用iterator.next()方法都会获取下一个节点
+            E data = iterator.next();
+            if (data != this.last) {
+                //不是最后一个元素 使用", "分割，拼接到后面
+                sb = sb.append(data).append(",");
+            } else {
+                //是最后一个元素，用"]"收尾
+                sb = sb.append(data).append("]");
+            }
+        }
+        return sb.toString();
     }
 
+    @Override
+    public Iterator<E> iterator() {
+        return new Itr();
+    }
+
+    /**
+     * 链表迭代器实现
+     */
+    private class Itr implements Iterator<E> {
+        /**
+         * 当前迭代器光标位置
+         * 初始化指向 第一个节点(不是首部节点)
+         */
+        private Node<E> currentNode = LinkedList.this.first.right;
+        /**
+         * 最近一次迭代返回的数据
+         */
+        private Node<E> lastReturned;
+
+        @Override
+        public boolean hasNext() {
+            //判断当前节点的下一个节点 是否是 尾部哨兵节点
+            return currentNode != LinkedList.this.last;
+        }
+
+        @Override
+        public E next() {
+            //设置最近一次返回的节点
+            this.lastReturned = currentNode;
+
+            //指向当前节点的下一个节点
+            this.currentNode = this.currentNode.right;
+
+            //返回当前节点的data
+            return this.lastReturned.data;
+        }
+
+        @Override
+        public void remove() {
+            if (this.lastReturned == null) {
+                throw new RuntimeException("迭代器状态异常: 可能在一次迭代中进行了多次remove操作");
+            }
+
+            //当前光标指向的节点要被删除,先暂存引用
+            Node<E> nodeWillRemove = this.lastReturned;
+
+            //移除操作需要将最近一次返回设置为null，防止多次remove
+            this.lastReturned = null;
+
+            //将节点从链表中移除
+            nodeWillRemove.unlinkSelf();
+        }
+    }
 }
